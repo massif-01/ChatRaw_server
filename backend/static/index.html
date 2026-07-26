@@ -1367,13 +1367,6 @@
                         </div>
                         <div class="model-card">
                             <div class="form-group">
-                                <label class="form-label" x-text="t('language')"></label>
-                                <div class="theme-grid">
-                                    <div class="theme-option" :class="{ 'active': lang === 'en' }" @click="setLanguage('en')" x-text="t('english')"></div>
-                                    <div class="theme-option" :class="{ 'active': lang === 'zh' }" @click="setLanguage('zh')" x-text="t('chinese')"></div>
-                                </div>
-                            </div>
-                            <div class="form-group">
                                 <label class="form-label" x-text="t('currentPassword')"></label>
                                 <input class="input-minimal" type="password" x-model="passwordForm.current_password" autocomplete="current-password">
                             </div>

@@ -30,14 +30,23 @@ test('core settings sections and task center use translation bindings', () => {
     assert.doesNotMatch(appHtml, /aria-label="(?:Settings navigation|Module tasks|Task progress)"/);
 });
 
-test('ordinary account settings expose the shared language selector', () => {
+test('language selector remains in admin-only UI settings, not account settings', () => {
+    const uiSection = appHtml.slice(
+        appHtml.indexOf(`x-show="settingsTab === 'ui'"`),
+        appHtml.indexOf(`x-show="settingsTab === 'users'"`)
+    );
     const accountSection = appHtml.slice(
         appHtml.indexOf(`x-show="settingsTab === 'account'"`),
         appHtml.indexOf('<!-- Modal Actions Footer -->')
     );
-    assert.match(accountSection, /setLanguage\('en'\)/);
-    assert.match(accountSection, /setLanguage\('zh'\)/);
-    assert.match(accountSection, /t\('language'\)/);
+    assert.match(
+        appHtml,
+        /<div class="nav-item" x-show="isAdmin\(\)"[^>]+settingsTab === 'ui'/
+    );
+    assert.match(uiSection, /setLanguage\('en'\)/);
+    assert.match(uiSection, /setLanguage\('zh'\)/);
+    assert.doesNotMatch(accountSection, /setLanguage\(/);
+    assert.doesNotMatch(accountSection, /t\('language'\)/);
 });
 
 test('language changes synchronize storage and document metadata', () => {
