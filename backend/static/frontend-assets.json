@@ -55,8 +55,8 @@
       "version": "e92dc38bfb1d15dbb9d9ca9e645754f68e7c5b224e33c45a17048bd0cf2407a6"
     },
     "index.html": {
-      "sha256": "1caa748843f07d97212c33b1d4878fa99106628b7c887a881cfceaf2cc3d0e39",
-      "version": "1caa748843f07d97212c33b1d4878fa99106628b7c887a881cfceaf2cc3d0e39"
+      "sha256": "72b99d74f23568d0ffe6f7dea3ebec6a681b8d330b4b6d5ff42671977cdd0c76",
+      "version": "72b99d74f23568d0ffe6f7dea3ebec6a681b8d330b4b6d5ff42671977cdd0c76"
     },
     "login.html": {
       "sha256": "1488341d125e7101ce309b11d16b16abcea858e6ade4c4cddf565484dccd5942",
@@ -79,12 +79,12 @@
       "version": "3f024322ba1e4dd3529d37a6e526ed79e343eef2538bb54ff971f7108fed6752"
     },
     "styles.css": {
-      "sha256": "bcff9931abd6a4125608f0ceb2a54abe0d51bc946384d8c6ef91c24cd9aeca03",
-      "version": "bcff9931abd6a4125608f0ceb2a54abe0d51bc946384d8c6ef91c24cd9aeca03"
+      "sha256": "ce814505c8a35d4e3ee4c6b85fb90fb0b4af2055473816f1d441fcfac2ae3f3c",
+      "version": "ce814505c8a35d4e3ee4c6b85fb90fb0b4af2055473816f1d441fcfac2ae3f3c"
     },
     "styles.min.css": {
-      "sha256": "7995a6c09e620e201b15b1e40270b3919d8ef7e11bd882844d484a5db1fb0854",
-      "version": "7995a6c09e620e201b15b1e40270b3919d8ef7e11bd882844d484a5db1fb0854"
+      "sha256": "6303d2c8e821982d2d78f9f3adb726eb688cae3ad464bed7f108f00b5cb276dc",
+      "version": "6303d2c8e821982d2d78f9f3adb726eb688cae3ad464bed7f108f00b5cb276dc"
     },
     "vendor/alpine-collapse.min.js": {
       "sha256": "2bd5d9719b537cdd83b80e171fd725da9cddaf9943d510fcb4ac0140db39a47a",

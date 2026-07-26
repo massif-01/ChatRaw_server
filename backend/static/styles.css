@@ -729,11 +729,11 @@ select:focus:not(:focus-visible),
 .message.user {
     flex-direction: row-reverse;
     justify-content: flex-start;
+    max-width: 100%;
 }
 
 .message.user .message-content {
     flex: 0 1 auto;
-    max-width: calc(100% - 60px);
 }
 
 .message.assistant {
