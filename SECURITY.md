@@ -61,6 +61,9 @@ Activation is explicit and transactional. Server rejects invalid or stale
 system candidates, duplicate record-presentation policies in the same scope,
 duplicate deterministic-pagination policies for the same exact tool and scope,
 and any activation that would make a user's effective task rule set exceed 10.
+Legacy deterministic-pagination and `tools[].iteration` snapshots remain
+readable for audit, but Server rejects compiling or reactivating them. The
+fallback Agent does not retrieve all detail pages in chat.
 Deletion is a Server-enforced tombstone operation: an active rule returns a
 stable conflict and is never implicitly deactivated; only the personal owner or
 a current administrator for a system rule may delete it. Task snapshots store
@@ -79,6 +82,8 @@ or a way around platform safety controls.
 隐式停用；个人规则只能由所有者删除，系统规则只能由当前管理员删除。任务快照独立保存作用域
 和 Compiled 版本，后续文档变化或删除都不会改写。任何规则都不能授予工具、权限、扩大预算或
 绕过平台安全限制。
+旧的确定性分页和 `tools[].iteration` 快照只保留审计可读性；Server 不允许重新编译或激活，
+回退 Agent 也不会在聊天内逐页取得全量明细。
 
 ## Plugins and Skills / 插件与 Skills
 

@@ -104,9 +104,10 @@ Schema 16 前必须停止写入并备份；旧 Server 不能直接打开迁移�
 
 未激活规则可由个人所有者或系统规则管理员删除；激活规则必须先明确停用，Server 不会
 在删除时自动停用。删除只写入墓碑，普通列表和后续任务不再选择该规则，但历史及在途任务
-仍可读取冻结版本；删除后可以新建同名规则。Compiled Rule v1.2 的
-`deterministic_pagination` 只接受 Source 明确给出的准确工具名、页码参数、页大小与空页
-终止契约，同一作用域内同一工具只能激活一条。
+仍可读取冻结版本；删除后可以新建同名规则。旧的 Compiled Rule v1.2
+`deterministic_pagination` 与 v1 `tools[].iteration` 快照仍可读取，但不得新编译或重新
+激活。回退 Agent 只支持聚合摘要或用户明确指定的一页明细；全量明细与导出必须交给独立的
+批处理工作流。规则不能提高 Agent 固定的调用、并发、页大小或超时上限。
 
 ### 5. 连接和启用模块
 
@@ -395,11 +396,13 @@ Back up the quiesced Server database before Schema 16. Inactive personal rules
 may be deleted by their owner and inactive system rules by an administrator.
 Server never deactivates a rule as a side effect of deletion. Deletion writes a
 tombstone: ordinary lists and future tasks omit it, frozen in-flight and
-historical snapshots remain readable, and the name may be reused. Compiled Rule
-v1.2 accepts `deterministic_pagination` only with an exact Source-stated tool,
-cursor, page-size, and empty-page termination contract; one scope may activate
-only one such rule per tool. Rolling back to older Server code requires the
-matching pre-migration data snapshot.
+historical snapshots remain readable, and the name may be reused. Legacy
+Compiled Rule v1.2 `deterministic_pagination` and v1 `tools[].iteration`
+snapshots remain readable, but cannot be compiled or reactivated. The fallback
+Agent supports aggregate summaries or one explicitly requested detail page
+only; bulk details and exports belong to a separate workflow. Rules cannot
+raise fixed Agent call, concurrency, page-size, or timeout limits. Rolling back
+to older Server code requires the matching pre-migration data snapshot.
 
 ### Module onboarding
 

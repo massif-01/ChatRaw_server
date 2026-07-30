@@ -299,7 +299,8 @@ Rule；配套插件只显示 Server 返回的 `editable` 和管理能力。不�
 规则删除必须由 Server 以墓碑实现：所有新建任务与管理查询排除 `deleted_at`，但
 `rule.read` 仍按 task activation 读取冻结版本。不能用物理删除、级联删除或前端隐藏
 代替，也不能在删除时隐式停用。新增 Compiled Rule 行为必须提升 schema 版本并保持旧
-版本解析语义不变；v1.2 的确定性分页契约不得回填进 v1.0/v1.1。
+版本解析语义不变。旧 v1.2 确定性分页与 v1 `tools[].iteration` 只保留历史解析和审计
+兼容，不得回填进 v1.0/v1.1，也不得重新编译、激活或由回退 Agent 执行。
 
 ## 9. Conformance 命令
 

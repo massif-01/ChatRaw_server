@@ -261,6 +261,11 @@ next send in the same chat is a new task and reads the latest active rules.
 Personal rules take precedence over conflicting system defaults, while platform
 security controls remain non-overridable.
 
+The fallback Agent supports aggregate summaries and one explicitly requested
+detail page. It does not walk pages for all details or exports in chat. A
+single-page result remains explicitly partial, and neither a personal nor a
+system rule can raise the fixed safety limits.
+
 An inactive personal rule may be deleted; an active rule must first be
 deactivated. It disappears from ordinary lists and its name may be reused, but
 in-flight and historical tasks that froze the version remain readable. The

@@ -257,6 +257,18 @@ class CompiledRule(BaseModel):
             raise ValueError("execution rule ids must be unique")
         return self
 
+    def uses_bulk_iteration(self) -> bool:
+        """Return whether this historical rule can multiply tool calls."""
+
+        return (
+            self.kind == "deterministic_pagination"
+            or any(
+                tool.iteration is not None
+                for rule in self.execution_rules
+                for tool in rule.tools
+            )
+        )
+
 
 COMPILED_RULE_JSON_SCHEMA = CompiledRule.model_json_schema()
 
@@ -271,8 +283,8 @@ Compilation rules:
 1. Emit schema_version "1.2" and exactly one explicit kind. Use
    kind "execution" for operational guidance. Use
    kind "record_presentation" only for a presentation-default policy over
-   structured business records. Use kind "deterministic_pagination" only
-   for a Source Document dedicated to one exact pagination contract.
+   structured business records. Never emit kind
+   "deterministic_pagination".
 2. Preserve only requirements stated by the Source Document. Do not invent
    business facts, tool names, field names, dates, permissions, or defaults.
 3. Convert operational instructions into ordered execution_rules. A rule's
@@ -281,11 +293,10 @@ Compilation rules:
    only when the Source Document states exact tool names.
 5. Put fixed arguments in argument_constants and fallback values in
    argument_defaults.
-6. For deterministic pagination, copy the exact tool name, cursor argument,
-   start, step, page-size argument, page size, empty-result termination and
-   maximum page count into deterministic_pagination. Do not infer any of
-   them. If any field is missing or ambiguous, use kind "execution" and
-   preserve the uncertainty in clarification_rules.
+6. Never create a loop, pagination contract, repeated-call instruction, or
+   legacy tools[].iteration. If the Source asks for full detail traversal,
+   preserve the unsupported request in clarification_rules; do not translate
+   it into executable guidance.
 7. If the Source Document is ambiguous or missing required runtime input,
    preserve that uncertainty in clarification_rules. Never guess.
 8. Never create rules that grant tool permissions, bypass confirmations,
@@ -298,10 +309,8 @@ Compilation rules:
     calculation, file generation, or non-business conversation behavior.
 11. identifier_fields may list exact record identifier field names only when
     the Source Document states them. Do not invent identifier fields.
-12. A deterministic_pagination rule must contain only
-    deterministic_pagination and clarification_rules. It never changes date
-    or other query arguments supplied for the original tool call, it stops
-    only on an empty result, and it cannot change runtime budgets.
+12. Rules cannot request interactive full-detail retrieval or an export.
+    Those operations belong to a separate bulk workflow, not Agent chat.
 """.strip()
 
 
@@ -762,6 +771,16 @@ class AgentRuleService:
                     ),
                 }
             ]
+        if compiled.uses_bulk_iteration():
+            return None, [
+                {
+                    "type": "bulk_iteration_disabled",
+                    "message": (
+                        "Bulk pagination and repeated tool-call rules are "
+                        "disabled in fallback mode"
+                    ),
+                }
+            ]
         normalized = compiled.model_dump(mode="json", exclude_none=True)
         encoded = json.dumps(
             normalized,
@@ -1158,6 +1177,25 @@ class AgentRuleService:
                     raise AgentRuleError(
                         "compiled_rule_invalid",
                         "Only a valid Compiled Rule can be activated",
+                        409,
+                    )
+                try:
+                    compiled_candidate = CompiledRule.model_validate_json(
+                        candidate["compiled_json"]
+                    )
+                except Exception:
+                    raise AgentRuleError(
+                        "compiled_rule_invalid",
+                        "Only a valid Compiled Rule can be activated",
+                        409,
+                    ) from None
+                if compiled_candidate.uses_bulk_iteration():
+                    raise AgentRuleError(
+                        "bulk_iteration_disabled",
+                        (
+                            "Bulk pagination and repeated tool-call rules "
+                            "are disabled in fallback mode"
+                        ),
                         409,
                     )
                 if (

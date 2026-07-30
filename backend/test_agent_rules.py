@@ -347,6 +347,7 @@ class AgentRuleServiceTests(unittest.IsolatedAsyncioTestCase):
             parsed_v10.execution_rules[0].tools[0].iteration.cursor_argument,
             "page",
         )
+        self.assertTrue(parsed_v10.uses_bulk_iteration())
 
         legacy_execution = compiled_rule()
         legacy_execution["schema_version"] = "1.1"
@@ -384,6 +385,7 @@ class AgentRuleServiceTests(unittest.IsolatedAsyncioTestCase):
             parsed.deterministic_pagination.max_pages,
             1024,
         )
+        self.assertTrue(parsed.uses_bulk_iteration())
 
         rule["deterministic_pagination"]["max_pages"] = 1025
         with self.assertRaises(ValidationError):
@@ -731,7 +733,7 @@ class AgentRuleServiceTests(unittest.IsolatedAsyncioTestCase):
             is_admin=True,
         )
 
-    async def test_duplicate_deterministic_pagination_tool_is_rejected_per_scope(
+    async def test_bulk_pagination_cannot_compile_or_reactivate(
         self,
     ):
         async def compile_model(_request):
@@ -745,44 +747,67 @@ class AgentRuleServiceTests(unittest.IsolatedAsyncioTestCase):
             audit=lambda *_args: None,
             audit_in_transaction=lambda _connection, *_args: None,
         )
-        candidates = []
-        for index in range(2):
-            created = service.create_document(
-                self.admin_id,
-                name=f"系统分页规则-{index}",
-                source_document="入口流水完整分页。",
-                scope="system_default",
-                is_admin=True,
-            )
-            compiled = await service.compile_document(
-                self.admin_id,
-                created["id"],
-                source_version_id=created["current_source_version_id"],
-                is_admin=True,
-            )
-            self.assertEqual(
-                compiled["compiled_candidates"][0]["compiled_rule"],
-                deterministic_pagination_rule(),
-            )
-            candidates.append(
-                (created["id"], compiled["compiled_candidates"][0]["id"])
-            )
-        service.activate(
+        created = service.create_document(
             self.admin_id,
-            candidates[0][0],
-            compiled_version_id=candidates[0][1],
+            name="系统分页规则",
+            source_document="入口流水完整分页。",
+            scope="system_default",
             is_admin=True,
         )
+        compiled = await service.compile_document(
+            self.admin_id,
+            created["id"],
+            source_version_id=created["current_source_version_id"],
+            is_admin=True,
+        )
+        candidate = compiled["compiled_candidates"][0]
+        self.assertEqual(candidate["status"], "invalid")
+        self.assertIsNone(candidate["compiled_rule"])
+        self.assertEqual(
+            candidate["validation_errors"][0]["type"],
+            "bulk_iteration_disabled",
+        )
+
+        historical_candidate_id = str(uuid.uuid4())
+        historical_json = json.dumps(
+            deterministic_pagination_rule(),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        with main.db.connection(write=True, immediate=True) as connection:
+            connection.execute(
+                """
+                INSERT INTO agent_compiled_rule_versions (
+                    id, document_id, source_version_id,
+                    specification_version, status, content_sha256,
+                    compiled_json, model_output, validation_errors_json,
+                    created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    historical_candidate_id,
+                    created["id"],
+                    created["current_source_version_id"],
+                    "chatraw-agent-rule-1.2",
+                    "valid",
+                    "f" * 64,
+                    historical_json,
+                    historical_json,
+                    "[]",
+                    "2026-07-31T00:00:00Z",
+                ),
+            )
         with self.assertRaises(AgentRuleError) as conflict:
             service.activate(
                 self.admin_id,
-                candidates[1][0],
-                compiled_version_id=candidates[1][1],
+                created["id"],
+                compiled_version_id=historical_candidate_id,
                 is_admin=True,
             )
         self.assertEqual(
             conflict.exception.code,
-            "deterministic_pagination_rule_conflict",
+            "bulk_iteration_disabled",
         )
 
     async def test_duplicate_record_presentation_policy_is_rejected_per_scope(

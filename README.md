@@ -46,8 +46,9 @@ Source Document 由用户维护；Compiler Specification 由系统维护；模�
 `personal` 规则只影响本人并在冲突时优先。创建、保存 Source 或编译都不会自动生效，
 任务创建时冻结当时激活的作用域、版本和哈希。未激活规则可以由授权用户软删除；
 激活规则必须先明确停用。删除不会破坏已冻结任务，并允许以后同名新建。
-Compiled Rule v1.2 以类型化 `deterministic_pagination` 表达单一工具的确定性分页契约；
-v1.0/v1.1 快照仍可读取。
+旧的 v1.2 `deterministic_pagination` 与 v1 `tools[].iteration` 快照仍可读取，
+但回退 Agent 不再允许聊天内逐页获取全量明细；Server 会拒绝新编译或重新激活这类候选。
+规则不能扩大 Agent 的固定调用、并发、分页或超时上限。
 Agent 任务使用通用 `activity.updated` 事件把显式计划、工具调用和脱敏结果显示在同一条对话消息中；
 最终 Markdown 仍由 Server 的聊天投影唯一持久化，不展示模型隐藏思维链。
 需要稳定机器输出的模块可申请高风险、任务级的 `model.invoke.v2`，由 Server 将受限
@@ -253,9 +254,11 @@ future new tasks; each user's `personal` rules affect only that user and take
 precedence on conflicts. Creating or compiling a candidate does not activate
 it. An authorized user may soft-delete an inactive rule; active rules must be
 explicitly deactivated first. Tombstones preserve frozen task snapshots and
-allow later name reuse. Compiled Rule v1.2 adds a typed
-`deterministic_pagination` contract for one exact tool while v1.0/v1.1
-snapshots remain readable. Agent uses native
+allow later name reuse. Legacy v1.2 `deterministic_pagination` and v1
+`tools[].iteration` snapshots remain readable, but the fallback Agent no
+longer walks pages to retrieve all detail records in chat. Server rejects
+compiling or reactivating such candidates, and rules cannot raise the Agent's
+fixed call, concurrency, pagination, or timeout limits. Agent uses native
 Pydantic AI Tool Calling over LinkDB, built-in, and standard HTTP MCP tools.
 Rules constrain behavior, Skills provide user-selected task instructions, and
 Tools are the only execution interface. LinkDB remains independent and its
